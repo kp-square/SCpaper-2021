@@ -6,6 +6,8 @@ import numpy as np
 import torchtext
 import argparse
 from torchtext.data.utils import get_tokenizer
+from torchtext.vocab import build_vocab_from_iterator
+from torchtext.datasets import WikiText2
 import re
 
 
@@ -122,13 +124,32 @@ def save_npz(name, W, B):
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # dataset--WikiText2
-    TEXT = torchtext.data.Field(tokenize=get_tokenizer("basic_english"),
-                                init_token='<sos>',
-                                eos_token='<eos>',
-                                lower=True)
-    train_txt, val_txt, test_txt = torchtext.datasets.WikiText2.splits(TEXT)
-    TEXT.build_vocab(train_txt)
-    ntokens = len(TEXT.vocab.stoi)  # the size of vocabulary
+
+    train_txt, val_txt, test_txt = WikiText2(split=('train', 'valid', 'test'))
+
+    # Function to yield tokens from the training data
+    tokenizer = get_tokenizer("basic_english")
+    
+    def yield_tokens(data_iter):
+        for text in data_iter:
+            yield tokenizer(text)
+
+    # Build the vocabulary from the training data, including special tokens
+    vocab = build_vocab_from_iterator(
+        yield_tokens(train_txt),
+        specials=['<sos>', '<eos>']
+    )
+
+    ntokens = len(vocab)
+
+    # TEXT = torchtext.data.Field(tokenize=get_tokenizer("basic_english"),
+    #                             init_token='<sos>',
+    #                             eos_token='<eos>',
+    #                             lower=True)
+    # train_txt, val_txt, test_txt = torchtext.datasets.WikiText2.splits(TEXT)
+    # TEXT.build_vocab(train_txt)
+    # ntokens = len(TEXT.vocab.stoi)  # the size of vocabulary
+
     model = TransformerModel(ntokens, args.emsize, args.nhead,
                              args.nhid, args.nlayers, args.dropout).to(device)
     model.load_state_dict(torch.load(

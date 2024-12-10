@@ -13,6 +13,8 @@ endif()
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda --default-stream per-thread -Xcompiler=${OpenMP_CXX_FLAGS}")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")  
 set(CMAKE_CUDA_ARCHITECTURES 70)
+# added because cnpy was installed locally
+set(CNPY_INSTALL_DIR "$ENV{HOME}/local/cnpy")
 
 include_directories(
     ${CUDA_INCLUDE_DIRS}
@@ -20,7 +22,13 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/mycublas/
     ${CMAKE_CURRENT_SOURCE_DIR}/mat_type/
+    # added because cnpy was installed locally
+    ${CNPY_INSTALL_DIR}/include/
     )
+
+# added because cnpy was installed locally
+link_directories(${CNPY_INSTALL_DIR}/lib)
+
 add_subdirectory(mycublas)
 add_subdirectory(lib)
 add_subdirectory(mat_type)

@@ -7,3 +7,8 @@
 *.npz
 /.data
 /npyfile/*
+*.pyc
+*.palmetto.*
+__pycache__/
+*.bin
+**/*.pyc
